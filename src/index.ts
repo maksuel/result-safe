@@ -27,3 +27,5 @@ export function safeSync<T, A extends any[] = [], E extends Error = Error>(
     return ensureError<E>(error);
   }
 }
+
+export type { SafeError, SafeResult, SafeSuccess };
