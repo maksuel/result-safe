@@ -1,0 +1,33 @@
+{
+  "name": "result-safe",
+  "version": "1.0.0",
+  "description": "A tiny, type-safe utility for handling synchronous and asynchronous operation results without throwing exceptions. Get consistent SafeResult objects with clear success or error states.",
+  "license": "MIT",
+  "author": "Maksuel Boni",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "typescript": "^5.8.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/maksuel/result-safe"
+  },
+  "keywords": [
+    "typescript",
+    "utility",
+    "error-handling",
+    "safe",
+    "result",
+    "promise",
+    "sync"
+  ],
+  "homepage": "https://github.com/maksuel/result-safe#readme"
+}
