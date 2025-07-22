@@ -1,15 +1,15 @@
+export interface SafeError<T = unknown> extends Error {}
+
 export type SafeSuccess<T> = {
   success: true;
   data: T;
   error?: never;
 };
 
-export type SafeError<E> = {
+export type SafeFailure<T> = {
   success: false;
   data?: never;
-  error: E;
+  error: SafeError<T>;
 };
 
-export type SafeResult<T, E extends Error = Error> =
-  | SafeSuccess<T>
-  | SafeError<E>;
+export type SafeResult<T> = SafeSuccess<T> | SafeFailure<T>;

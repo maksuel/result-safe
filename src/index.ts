@@ -1,31 +1,31 @@
-import type { SafeError, SafeResult, SafeSuccess } from "./@types";
+import type { SafeError, SafeFailure, SafeResult, SafeSuccess } from "./@types";
 
-function ensureError<E extends Error = Error>(error: unknown): SafeError<E> {
+function ensureSafeFailure<T>(error: unknown): SafeFailure<T> {
   if (error instanceof Error) {
-    return { success: false, error: error as E };
+    return { success: false, error };
   } else {
-    return { success: false, error: new Error(String(error)) as E };
+    return { success: false, error: new Error(String(error)) };
   }
 }
 
-export async function safePromise<T, E extends Error = Error>(
+export async function safePromise<T>(
   promise: Promise<T>
-): Promise<SafeResult<T, E>> {
+): Promise<SafeResult<T>> {
   return promise
     .then((data: T): SafeSuccess<T> => ({ success: true, data }))
-    .catch((error: unknown): SafeError<E> => ensureError<E>(error));
+    .catch((error: unknown): SafeFailure<T> => ensureSafeFailure<T>(error));
 }
 
-export function safeSync<T, A extends any[] = [], E extends Error = Error>(
+export function safeSync<T, A extends any[] = []>(
   func: (...args: A) => T,
   ...args: A
-): SafeResult<T, E> {
+): SafeResult<T> {
   try {
     const data = func(...args);
     return { success: true, data };
   } catch (error) {
-    return ensureError<E>(error);
+    return ensureSafeFailure<T>(error);
   }
 }
 
-export type { SafeError, SafeResult, SafeSuccess };
+export type { SafeError, SafeFailure, SafeResult, SafeSuccess };
