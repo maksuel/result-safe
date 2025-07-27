@@ -1,11 +1,10 @@
 import type { SafeError, SafeFailure, SafeResult, SafeSuccess } from "./@types";
 
-function ensureSafeFailure<T>(error: unknown): SafeFailure<T> {
-  if (error instanceof Error) {
-    return { success: false, error };
-  } else {
-    return { success: false, error: new Error(String(error)) };
-  }
+function ensureSafeFailure(error: unknown): SafeFailure {
+  return {
+    success: false,
+    error: new Error("Safe Failure", { cause: error }),
+  };
 }
 
 export async function safePromise<T>(
@@ -13,7 +12,7 @@ export async function safePromise<T>(
 ): Promise<SafeResult<T>> {
   return promise
     .then((data: T): SafeSuccess<T> => ({ success: true, data }))
-    .catch((error: unknown): SafeFailure<T> => ensureSafeFailure<T>(error));
+    .catch((error: unknown): SafeFailure => ensureSafeFailure(error));
 }
 
 export function safeSync<T, A extends any[] = []>(
@@ -24,7 +23,7 @@ export function safeSync<T, A extends any[] = []>(
     const data = func(...args);
     return { success: true, data };
   } catch (error) {
-    return ensureSafeFailure<T>(error);
+    return ensureSafeFailure(error);
   }
 }
 

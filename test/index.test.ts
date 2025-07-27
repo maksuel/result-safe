@@ -1,8 +1,9 @@
 import { describe, it, expect, assert } from "vitest";
 import { safePromise, safeSync } from "../src";
-import type { SafeError } from "../src/@types";
 
-// --- Testes para safePromise ---
+/**
+ * --- Testes para safePromise ---
+ */
 describe("safePromise", () => {
   it("should return success for a resolved promise", async () => {
     const data = "Hello, world!";
@@ -11,13 +12,11 @@ describe("safePromise", () => {
 
     expect(result.success).toBe(true);
     expect(result.data).toBe(data);
-    // @ts-ignore - 'error' should not exist on success result
     expect(result.error).toBeUndefined();
   });
 
   it("should return failure for a rejected promise with an Error", async () => {
-    const errorMessage = "Something went wrong!";
-    const error = new Error(errorMessage);
+    const error = new Error("Something went wrong!");
     const promise = Promise.reject(error);
     const result = await safePromise(promise);
 
@@ -26,8 +25,10 @@ describe("safePromise", () => {
 
     if (!result.success) {
       expect(result.error).toBeInstanceOf(Error);
-      expect(result.error.message).toBe(errorMessage);
+      expect(result.error.message).toBe("Safe Failure");
       expect(result.error.name).toBe("Error");
+
+      expect(result.error.cause).toBe(error); // The original error should be the cause
     } else {
       assert.fail("Promise should have rejected, but it succeeded.");
     }
@@ -42,8 +43,11 @@ describe("safePromise", () => {
     expect(result.data).toBeUndefined();
 
     if (!result.success) {
-      expect(result.error).toBeInstanceOf(Error); // Should be converted to an Error instance
-      expect(result.error.message).toBe(String(nonErrorValue)); // Message should be the string representation
+      expect(result.error).toBeInstanceOf(Error);
+      expect(result.error.message).toBe("Safe Failure");
+      expect(result.error.name).toBe("Error");
+
+      expect(result.error.cause).toBe(nonErrorValue); // The original value should be the cause
     } else {
       assert.fail("Promise should have rejected, but it succeeded.");
     }
@@ -66,12 +70,24 @@ describe("safePromise", () => {
     const result = await safePromise(promise);
 
     expect(result.success).toBe(false);
-    expect(result.error).toBeInstanceOf(CustomError);
-    expect((result.error as CustomError).code).toBe("USER_NOT_FOUND");
+    expect(result.data).toBeUndefined();
+
+    if (!result.success) {
+      expect(result.error).toBeInstanceOf(Error);
+      expect(result.error.message).toBe("Safe Failure");
+      expect(result.error.name).toBe("Error");
+
+      expect(result.error?.cause).toBeInstanceOf(CustomError);
+      expect((result.error?.cause as CustomError).code).toBe("USER_NOT_FOUND");
+    } else {
+      assert.fail("Promise should have rejected, but it succeeded.");
+    }
   });
 });
 
-// --- Testes para safeSync ---
+/**
+ * --- Testes para safeSync ---
+ */
 describe("safeSync", () => {
   it("should return success for a function that returns a value", () => {
     const sum = (a: number, b: number) => a + b;
@@ -79,13 +95,13 @@ describe("safeSync", () => {
 
     expect(result.success).toBe(true);
     expect(result.data).toBe(8);
-    // @ts-ignore
     expect(result.error).toBeUndefined();
   });
 
   it("should return failure for a function that throws an Error", () => {
+    const errorMessage = "Sync error!";
     const throwError = () => {
-      throw new Error("Sync error!");
+      throw new Error(errorMessage);
     };
     const result = safeSync(throwError);
 
@@ -94,15 +110,20 @@ describe("safeSync", () => {
 
     if (!result.success) {
       expect(result.error).toBeInstanceOf(Error);
-      expect(result.error.message).toBe("Sync error!");
+      expect(result.error.message).toBe("Safe Failure");
+      expect(result.error.name).toBe("Error");
+
+      expect(result.error.cause).toBeInstanceOf(Error);
+      expect((result.error.cause as Error).message).toBe(errorMessage);
     } else {
       assert.fail("Function should have error, but it succeeded.");
     }
   });
 
   it("should return failure for a function that throws a non-Error value", () => {
+    const errorMessage = "String error!";
     const throwString = () => {
-      throw "String error!";
+      throw errorMessage;
     };
     const result = safeSync(throwString);
 
@@ -110,8 +131,11 @@ describe("safeSync", () => {
     expect(result.data).toBeUndefined();
 
     if (!result.success) {
-      expect(result.error).toBeInstanceOf(Error); // Should be converted to an Error instance
-      expect(result.error.message).toBe("String error!");
+      expect(result.error).toBeInstanceOf(Error);
+      expect(result.error.message).toBe("Safe Failure");
+      expect(result.error.name).toBe("Error");
+
+      expect(result.error.cause).toBe(errorMessage);
     } else {
       assert.fail("Function should have error, but it succeeded.");
     }
@@ -132,7 +156,17 @@ describe("safeSync", () => {
     const result = safeSync(throwCustomSyncError);
 
     expect(result.success).toBe(false);
-    expect(result.error).toBeInstanceOf(CustomSyncError);
-    expect((result.error as CustomSyncError).severity).toBe("high");
+    expect(result.data).toBeUndefined();
+
+    if (!result.success) {
+      expect(result.error).toBeInstanceOf(Error);
+      expect(result.error.message).toBe("Safe Failure");
+      expect(result.error.name).toBe("Error");
+
+      expect(result.error.cause).toBeInstanceOf(CustomSyncError);
+      expect((result.error.cause as CustomSyncError).severity).toBe("high");
+    } else {
+      assert.fail("Function should have error, but it succeeded.");
+    }
   });
 });
