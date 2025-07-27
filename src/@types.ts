@@ -6,10 +6,10 @@ export type SafeSuccess<T> = {
   error?: never;
 };
 
-export type SafeFailure = {
+export type SafeFailure<E> = {
   success: false;
   data?: never;
-  error: SafeError;
+  error: E;
 };
 
-export type SafeResult<T> = SafeSuccess<T> | SafeFailure;
+export type SafeResult<T, E = SafeError> = SafeSuccess<T> | SafeFailure<E>;
